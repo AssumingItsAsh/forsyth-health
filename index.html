@@ -12,16 +12,31 @@
       padding: 20px;
     }
 
-    h1 {
-      font-size: 26px;
-    }
-
-    select, input, button {
+    input, select, button {
       padding: 10px;
       font-size: 16px;
       margin-top: 10px;
-      margin-bottom: 10px;
       border-radius: 5px;
+    }
+
+    #autocompleteResults {
+      background: white;
+      color: black;
+      position: absolute;
+      max-height: 150px;
+      overflow-y: auto;
+      width: 300px;
+      border-radius: 5px;
+      z-index: 999;
+    }
+
+    #autocompleteResults div {
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    #autocompleteResults div:hover {
+      background-color: #eee;
     }
 
     #results {
@@ -31,27 +46,12 @@
       padding: 15px;
       border-radius: 10px;
     }
-
-    #autocompleteResults {
-      position: absolute;
-      background: white;
-      color: black;
-      max-height: 150px;
-      overflow-y: auto;
-      width: 300px;
-      border-radius: 4px;
-      z-index: 999;
-    }
-
-    #autocompleteResults div:hover {
-      background-color: #eee;
-    }
   </style>
 </head>
 <body>
   <h1>Find Doctors in Forsyth County</h1>
 
-  <input id="addressInput" type="text" placeholder="Enter your address" style="width: 300px;" />
+  <input id="addressInput" type="text" placeholder="Enter your address" style="width: 300px;" autocomplete="off" />
   <div id="autocompleteResults"></div>
   <button onclick="handleAddress()">Find My Region</button>
 
@@ -75,27 +75,31 @@
       { name: "Dr. Ali", address: "22 Peachtree Rd", region: "Alpharetta" }
     ];
 
-    // Autocomplete (Photon API)
+    let selectedLat = null;
+    let selectedLng = null;
+
     document.getElementById("addressInput").addEventListener("input", async function () {
       const query = this.value;
       if (query.length < 3) return;
 
       const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
       const data = await res.json();
+
       const resultsDiv = document.getElementById("autocompleteResults");
       resultsDiv.innerHTML = "";
 
       data.features.forEach(feature => {
-        const option = document.createElement("div");
-        option.textContent = feature.properties.name + ", " + (feature.properties.city || "") + ", " + (feature.properties.state || "");
-        option.style.padding = "5px";
-        option.style.cursor = "pointer";
+        const lat = feature.geometry.coordinates[1];
+        const lng = feature.geometry.coordinates[0];
 
+        const displayText = feature.properties.name + ", " + (feature.properties.city || "") + ", " + (feature.properties.state || "");
+        const option = document.createElement("div");
+        option.textContent = displayText;
         option.onclick = () => {
-          document.getElementById("addressInput").value = option.textContent;
+          document.getElementById("addressInput").value = displayText;
           resultsDiv.innerHTML = "";
-          document.getElementById("addressInput").setAttribute("data-lat", feature.geometry.coordinates[1]);
-          document.getElementById("addressInput").setAttribute("data-lng", feature.geometry.coordinates[0]);
+          selectedLat = lat;
+          selectedLng = lng;
         };
 
         resultsDiv.appendChild(option);
@@ -103,16 +107,12 @@
     });
 
     function handleAddress() {
-      const lat = parseFloat(document.getElementById("addressInput").getAttribute("data-lat"));
-      const lng = parseFloat(document.getElementById("addressInput").getAttribute("data-lng"));
-
-      if (isNaN(lat) || isNaN(lng)) {
-        alert("Please select a full address from the dropdown.");
+      if (selectedLat === null || selectedLng === null) {
+        alert("Please select an address from the dropdown.");
         return;
       }
 
-      const region = getRegionFromCoords(lat, lng);
-
+      const region = getRegionFromCoords(selectedLat, selectedLng);
       if (region) {
         document.getElementById("regionSelect").value = region;
         filterByRegion();
@@ -143,9 +143,7 @@
 
       resultsDiv.innerHTML = `<h3>Doctors in ${selectedRegion}</h3>`;
       filteredDoctors.forEach(doc => {
-        resultsDiv.innerHTML += `
-          <p><strong>${doc.name}</strong><br>${doc.address}</p>
-        `;
+        resultsDiv.innerHTML += `<p><strong>${doc.name}</strong><br>${doc.address}</p>`;
       });
     }
   </script>
