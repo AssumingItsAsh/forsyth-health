@@ -71,7 +71,6 @@
   <select id="regionSelect" onchange="filterByRegion()">
     <option value="">-- Select a Region --</option>
     <option value="South Forsyth">South Forsyth</option>
-    <option value="North Forsyth">North Forsyth</option>
   </select>
 
   <div id="results"></div>
@@ -90,18 +89,13 @@
         [34.1000, -84.0500],
         [34.1800, -84.0500],
         [34.1800, -84.2700]
-      ],
-      "North Forsyth": [
-        [34.2500, -84.2700],
-        [34.2500, -84.0500],
-        [34.3300, -84.0500],
-        [34.3300, -84.2700]
       ]
     };
 
     let currentPolygon = null;
 
     const doctors = [
+      // 🧠 Mental Health — ALL in South Forsyth
       {
         name: "Thriveworks Counseling & Psychiatry",
         specialty: "Counselor",
@@ -114,6 +108,7 @@
         quote: "Knowledgeable and experienced professionals.",
         mapsQuery: "Thriveworks+Counseling+Cumming+GA"
       },
+      // 🏥 Physical Care — ALL in South Forsyth
       {
         name: "North Atlanta Primary Care Cumming",
         specialty: "Primary Care",
@@ -127,10 +122,34 @@
         mapsQuery: "North+Atlanta+Primary+Care+1800+Northside+Forsyth+Dr+Cumming+GA"
       },
       {
+        name: "South Forsyth Family Medicine and Pediatrics",
+        specialty: "Pediatrics",
+        category: "Physical",
+        region: "South Forsyth",
+        phone: "(770) 343-9112",
+        rating: 3.9,
+        reviews: 68,
+        openHour: 8,
+        quote: "Absolutely fantastic! Clean and well organized.",
+        mapsQuery: "South+Forsyth+Family+Medicine+and+Pediatrics+Alpharetta+GA"
+      },
+      {
+        name: "Northside Forsyth Internal Medicine & Geriatrics",
+        specialty: "Internal Medicine",
+        category: "Physical",
+        region: "South Forsyth",
+        phone: "(770) 844-0877",
+        rating: 4.6,
+        reviews: 21,
+        openHour: 7.5,
+        quote: "Doctors & staff are phenomenal.",
+        mapsQuery: "Northside+Forsyth+Internal+Medicine+and+Geriatrics+GA"
+      },
+      {
         name: "Northeast Georgia Physicians Group Cumming",
         specialty: "Family Practice",
         category: "Physical",
-        region: "North Forsyth",
+        region: "South Forsyth",
         phone: "(770) 848-9200",
         rating: 3.3,
         reviews: 22,
@@ -142,7 +161,9 @@
 
     const categoryLabels = {
       "Mental": "🧠 Mental Health",
-      "Physical": "🏥 Physical Care"
+      "Physical": "🏥 Physical Care",
+      "Dental": "🦷 Dental",
+      "Eye": "👁 Eye Care"
     };
 
     function filterByRegion() {
@@ -167,28 +188,39 @@
       const filtered = doctors.filter(doc => doc.region === region);
       const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
 
-      const byCategory = {};
+      const byCategory = {
+        "Mental": [],
+        "Physical": [],
+        "Dental": [],
+        "Eye": []
+      };
+
       filtered.forEach(doc => {
-        if (!byCategory[doc.category]) byCategory[doc.category] = [];
-        byCategory[doc.category].push(doc);
+        if (byCategory[doc.category]) {
+          byCategory[doc.category].push(doc);
+        }
       });
 
-      for (const category in byCategory) {
+      for (const category in categoryLabels) {
         resultsDiv.innerHTML += `<div class="section-header">${categoryLabels[category]}</div>`;
-        byCategory[category].forEach(doc => {
-          const isOpen = currentHour >= doc.openHour;
-          const openText = isOpen ? `<span class='open-now'>Open</span>` : `<span class='closed'>Closed</span>`;
-          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.mapsQuery)}`;
+        if (byCategory[category].length === 0) {
+          resultsDiv.innerHTML += `<p style="margin-left: 10px;">No doctors listed.</p>`;
+        } else {
+          byCategory[category].forEach(doc => {
+            const isOpen = currentHour >= doc.openHour;
+            const openText = isOpen ? `<span class='open-now'>Open</span>` : `<span class='closed'>Closed</span>`;
+            const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.mapsQuery)}`;
 
-          resultsDiv.innerHTML += `
-            <div class="doctor-card">
-              <strong><a href="${mapsLink}" target="_blank">${doc.name}</a></strong><br>
-              ${doc.specialty} · ${doc.rating}⭐ (${doc.reviews})<br>
-              ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
-              <em>"${doc.quote}"</em>
-            </div>
-          `;
-        });
+            resultsDiv.innerHTML += `
+              <div class="doctor-card">
+                <strong><a href="${mapsLink}" target="_blank">${doc.name}</a></strong><br>
+                ${doc.specialty} · ${doc.rating}⭐ (${doc.reviews})<br>
+                ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
+                <em>"${doc.quote}"</em>
+              </div>
+            `;
+          });
+        }
       }
     }
 
