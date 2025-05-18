@@ -52,7 +52,7 @@
 <body>
   <h1>Find Doctors in Forsyth County</h1>
 
-  <input id="addressInput" type="text" placeholder="Enter your address" style="width: 300px;" autocomplete="off" />
+  <input id="addressInput" type="text" placeholder="Start typing your street or area..." style="width: 300px;" autocomplete="off" />
   <div id="autocompleteResults"></div>
   <button onclick="handleAddress()">Find My Region</button>
 
@@ -81,9 +81,13 @@
 
     document.getElementById("addressInput").addEventListener("input", async function () {
       const query = this.value;
-      if (query.length < 3) return;
+      if (query.length < 2) return;
 
-      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=-84.35,34.00,-83.95,34.35`);
+      // This bbox is ONLY Forsyth County GA area
+      const bbox = "-84.35,34.00,-83.95,34.35"; // west, south, east, north
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=${bbox}`;
+
+      const res = await fetch(url);
       const data = await res.json();
 
       const resultsDiv = document.getElementById("autocompleteResults");
@@ -92,12 +96,12 @@
       data.features.forEach(feature => {
         const lat = feature.geometry.coordinates[1];
         const lng = feature.geometry.coordinates[0];
+        const label = feature.properties.name + ", " + (feature.properties.city || "") + ", " + (feature.properties.state || "");
 
-        const displayText = feature.properties.name + ", " + (feature.properties.city || "") + ", " + (feature.properties.state || "");
         const option = document.createElement("div");
-        option.textContent = displayText;
+        option.textContent = label;
         option.onclick = () => {
-          document.getElementById("addressInput").value = displayText;
+          document.getElementById("addressInput").value = label;
           resultsDiv.innerHTML = "";
           selectedLat = lat;
           selectedLng = lng;
