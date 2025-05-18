@@ -70,7 +70,9 @@
   <label for="regionSelect">Choose your region:</label>
   <select id="regionSelect" onchange="filterByRegion()">
     <option value="">-- Select a Region --</option>
-    <option value="South Forsyth">South Forsyth</option>
+   <option value="South Forsyth">South Forsyth</option>
+<option value="Alpharetta">Alpharetta</option>
+
   </select>
 
   <div id="results"></div>
@@ -84,15 +86,22 @@
     }).addTo(map);
 
     const regionPolygons = {
-      "South Forsyth": [
-        [34.0931, -84.2515],
-        [34.0956, -84.1384],
-        [34.1520, -84.1100],
-        [34.1761, -84.1394],
-        [34.1691, -84.2263],
-        [34.1365, -84.2643]
-      ]
-    };
+  "South Forsyth": [
+    [34.0931, -84.2515],
+    [34.0956, -84.1384],
+    [34.1520, -84.1100],
+    [34.1761, -84.1394],
+    [34.1691, -84.2263],
+    [34.1365, -84.2643]
+  ],
+  "Alpharetta": [
+    [34.0500, -84.3100],
+    [34.0500, -84.2000],
+    [34.1200, -84.2000],
+    [34.1200, -84.3100]
+  ]
+};
+
 
     let currentPolygon = null;
 
@@ -410,8 +419,7 @@
   quote: "Comprehensive eye exams and stylish frames.",
   mapsQuery: "Windward+Eye+Care+Alpharetta+GA"
 }
-
-    ];
+];
 
     const categoryLabels = {
       "Mental": "🧠 Mental Health",
