@@ -508,7 +508,7 @@
       "Eye": "👁 Eye Care"
     };
 
-    function filterByRegion() {
+        function filterByRegion() {
       const region = document.getElementById("regionSelect").value;
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
@@ -562,18 +562,17 @@
               </div>
             `;
           });
+        }
       }
-    } // 👈 Add this final closing brace for filterByRegion
-  }
+    } // ✅ This line was missing
 
-  function formatTime(hourFloat) {
-    const hour = Math.floor(hourFloat);
-    const min = Math.round((hourFloat - hour) * 60);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    return `${displayHour}:${min.toString().padStart(2, '0')} ${ampm}`;
-  }
-
+    function formatTime(hourFloat) {
+      const hour = Math.floor(hourFloat);
+      const min = Math.round((hourFloat - hour) * 60);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+      return `${displayHour}:${min.toString().padStart(2, '0')} ${ampm}`;
+    }
   </script>
 </body>
 </html>
