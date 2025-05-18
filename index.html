@@ -93,52 +93,56 @@
         specialty: "Psychiatrist",
         category: "Mental",
         region: "South Forsyth",
-        lat: 34.152374,
-        lng: -84.172605,
+        lat: 34.1524,
+        lng: -84.1726,
         phone: "(770) 886-5700",
         rating: 4.8,
         reviews: 52,
         openHour: 7.5,
-        quote: "She helps me keep on a stable life track with my bipolar disorder."
+        quote: "Helps me stay on a stable life track.",
+        mapsQuery: "Susan+Player+Psychiatric+NP+South+Forsyth"
       },
       {
         name: "Thriveworks Counseling & Psychiatry",
         specialty: "Counselor",
         category: "Mental",
         region: "South Forsyth",
-        lat: 34.152171,
-        lng: -84.168742,
+        lat: 34.1522,
+        lng: -84.1687,
         phone: "(770) 824-3025",
         rating: 4.7,
         reviews: 62,
         openHour: 8,
-        quote: "Knowledgeable and experienced professionals."
+        quote: "Knowledgeable and experienced professionals.",
+        mapsQuery: "Thriveworks+Counseling+Cumming+GA"
       },
       {
         name: "Pavilion Psychological Services",
         specialty: "Mental Health Clinic",
         category: "Mental",
         region: "South Forsyth",
-        lat: 34.154487,
-        lng: -84.132336,
+        lat: 34.1545,
+        lng: -84.1323,
         phone: "(470) 239-8448",
         rating: 4.5,
         reviews: 8,
         openHour: 9,
-        quote: "Dr. Baker was exceptional in helping my son with troubles at school."
+        quote: "Exceptional help with school-related issues.",
+        mapsQuery: "Pavilion+Psychological+Services+Cumming+GA"
       },
       {
         name: "LifeStance Therapists & Psychiatrists",
         specialty: "Psychologist",
         category: "Mental",
         region: "South Forsyth",
-        lat: 34.152374,
-        lng: -84.172605,
+        lat: 34.1523,
+        lng: -84.1726,
         phone: "(770) 886-5700",
         rating: 4.6,
         reviews: 496,
         openHour: 7.5,
-        quote: "She listens to you and helps you at a deeper level."
+        quote: "Listens to you and helps on a deeper level.",
+        mapsQuery: "LifeStance+Therapists+Psychiatrists+Cumming+GA"
       },
 
       // 🏥 PHYSICAL CARE — SOUTH FORSYTH
@@ -147,52 +151,56 @@
         specialty: "Primary Care",
         category: "Physical",
         region: "South Forsyth",
-        lat: 34.215806,
-        lng: -84.135928,
+        lat: 34.2158,
+        lng: -84.1359,
         phone: "(770) 343-9112",
         rating: 4.5,
         reviews: 1300,
         openHour: 8,
-        quote: "Knowledgeable and really seem to listen."
+        quote: "Doctors are knowledgeable and really listen.",
+        mapsQuery: "North+Atlanta+Primary+Care+Cumming+GA"
       },
       {
         name: "South Forsyth Family Medicine and Pediatrics",
         specialty: "Pediatrics",
         category: "Physical",
         region: "South Forsyth",
-        lat: 34.086994,
-        lng: -84.261222,
+        lat: 34.0869,
+        lng: -84.2612,
         phone: "(770) 343-9112",
         rating: 3.9,
         reviews: 68,
         openHour: 8,
-        quote: "Absolutely fantastic! Clean and well organized!"
+        quote: "Absolutely fantastic! Clean and well organized.",
+        mapsQuery: "South+Forsyth+Family+Medicine+Pediatrics+Alpharetta"
       },
       {
         name: "Northside Forsyth Internal Medicine & Geriatrics",
         specialty: "Internal Medicine",
         category: "Physical",
         region: "South Forsyth",
-        lat: 34.221002,
-        lng: -84.134660,
+        lat: 34.2210,
+        lng: -84.1347,
         phone: "(770) 844-0877",
         rating: 4.6,
         reviews: 21,
         openHour: 7.5,
-        quote: "The doctors & staff are phenomenal."
+        quote: "Doctors & staff are phenomenal.",
+        mapsQuery: "Northside+Forsyth+Internal+Medicine+Geriatrics+Cumming"
       },
       {
         name: "Northeast Georgia Physicians Group Cumming",
         specialty: "Family Practice",
         category: "Physical",
         region: "South Forsyth",
-        lat: 34.270775,
-        lng: -84.080379,
+        lat: 34.2708,
+        lng: -84.0803,
         phone: "(770) 848-9200",
         rating: 3.3,
         reviews: 22,
         openHour: 7.75,
-        quote: "Listens and gets you in quickly."
+        quote: "Listens and gets you in quickly.",
+        mapsQuery: "Northeast+Georgia+Physicians+Group+Cumming+GA"
       }
     ];
 
@@ -252,11 +260,12 @@
         byCategory[category].forEach(doc => {
           const isOpen = currentHour >= doc.openHour;
           const openText = isOpen ? `<span class='open-now'>Open</span>` : `<span class='closed'>Closed</span>`;
+          const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(doc.mapsQuery)}`;
 
           resultsDiv.innerHTML += `
             <div class="doctor-card">
               <strong>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${doc.lat},${doc.lng}" target="_blank">
+                <a href="${mapsLink}" target="_blank">
                   ${doc.name}
                 </a>
               </strong><br>
