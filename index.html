@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #0d1b2a; /* dark blue */
+      background: #0d1b2a;
       color: white;
       padding: 20px;
     }
@@ -26,6 +26,19 @@
       padding: 15px;
       border-radius: 10px;
       background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .doctor-card {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .open-now {
+      color: lightgreen;
+    }
+    .closed {
+      color: red;
     }
 
     #map {
@@ -58,14 +71,18 @@
   <script>
     const doctors = [
       { name: "Dr. Emily Johnson", specialty: "Dental", region: "Cumming", lat: 34.2073, lng: -84.1402 },
-      { name: "Dr. Laura Smith", specialty: "Mental Health", region: "South Forsyth", lat: 34.1500, lng: -84.1700 },
-      { name: "Dr. Karen Taylor", specialty: "Eye Care", region: "North Forsyth", lat: 34.2700, lng: -84.1000 },
-      { name: "Dr. Linda Jackson", specialty: "Primary Care", region: "Alpharetta", lat: 34.0800, lng: -84.2800 }
+      { name: "LifeStance Therapists & Psychiatrists Cumming", specialty: "Psychologist", region: "South Forsyth", lat: 34.1505, lng: -84.1690, phone: "(770) 886-5700", rating: 4.6, reviews: 496, openHour: 7.5, quote: "She listens to you and helps you at a deeper level." },
+      { name: "Pavilion Psychological Services", specialty: "Mental Health Clinic", region: "South Forsyth", lat: 34.1510, lng: -84.1720, phone: "(470) 239-8448", rating: 4.5, reviews: 8, openHour: 9, quote: "Dr. Baker was exceptional in helping my son with troubles at school." },
+      { name: "Thriveworks Counseling & Psychiatry Cumming", specialty: "Counselor", region: "South Forsyth", lat: 34.1520, lng: -84.1740, phone: "(770) 824-3025", rating: 4.7, reviews: 62, openHour: 8, quote: "Knowledgeable and experienced professionals." },
+      { name: "Susan Player, Psychiatric NP", specialty: "Psychologist", region: "South Forsyth", lat: 34.1530, lng: -84.1750, phone: "(770) 886-5700", rating: 4.8, reviews: 52, openHour: 7.5, quote: "She helps me keep on a stable life track with my bipolar disorder." }
     ];
 
     const specialtyColors = {
       "Dental": "#3498db",
       "Mental Health": "#e74c3c",
+      "Mental Health Clinic": "#e74c3c",
+      "Psychologist": "#e74c3c",
+      "Counselor": "#e74c3c",
       "Eye Care": "#2ecc71",
       "Primary Care": "#f39c12"
     };
@@ -96,13 +113,25 @@
         return;
       }
 
+      const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
+
       resultsDiv.innerHTML = `<h3>Doctors in ${region}</h3>`;
       filtered.forEach(doc => {
-        resultsDiv.innerHTML += `<p><strong>${doc.name}</strong><br>${doc.specialty}</p>`;
+        const isOpen = currentHour >= doc.openHour;
+        const openText = isOpen ? `<span class='open-now'>Open</span>` : `<span class='closed'>Closed</span>`;
+
+        resultsDiv.innerHTML += `
+          <div class="doctor-card">
+            <strong>${doc.name}</strong><br>
+            ${doc.specialty} · <span>${doc.rating}⭐ (${doc.reviews})</span><br>
+            ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
+            <em>"${doc.quote}"</em>
+          </div>
+        `;
 
         const marker = L.circleMarker([doc.lat, doc.lng], {
           radius: 8,
-          fillColor: specialtyColors[doc.specialty],
+          fillColor: specialtyColors[doc.specialty] || "#999",
           color: "#000",
           weight: 1,
           opacity: 1,
@@ -111,6 +140,14 @@
 
         markers.push(marker);
       });
+    }
+
+    function formatTime(hourFloat) {
+      const hour = Math.floor(hourFloat);
+      const min = Math.round((hourFloat - hour) * 60);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+      return `${displayHour}:${min.toString().padStart(2, '0')} ${ampm}`;
     }
   </script>
 </body>
