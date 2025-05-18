@@ -28,6 +28,13 @@
       background-color: rgba(255, 255, 255, 0.05);
     }
 
+    .section-header {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+    }
+
     .doctor-card {
       margin-bottom: 15px;
       padding: 10px;
@@ -80,9 +87,11 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     const doctors = [
+      // 🧠 MENTAL HEALTH — SOUTH FORSYTH
       {
         name: "Susan Player, Psychiatric NP",
         specialty: "Psychiatrist",
+        category: "Mental",
         region: "South Forsyth",
         lat: 34.152374,
         lng: -84.172605,
@@ -95,6 +104,7 @@
       {
         name: "Thriveworks Counseling & Psychiatry",
         specialty: "Counselor",
+        category: "Mental",
         region: "South Forsyth",
         lat: 34.152171,
         lng: -84.168742,
@@ -107,6 +117,7 @@
       {
         name: "Pavilion Psychological Services",
         specialty: "Mental Health Clinic",
+        category: "Mental",
         region: "South Forsyth",
         lat: 34.154487,
         lng: -84.132336,
@@ -119,6 +130,7 @@
       {
         name: "LifeStance Therapists & Psychiatrists",
         specialty: "Psychologist",
+        category: "Mental",
         region: "South Forsyth",
         lat: 34.152374,
         lng: -84.172605,
@@ -127,18 +139,81 @@
         reviews: 496,
         openHour: 7.5,
         quote: "She listens to you and helps you at a deeper level."
+      },
+
+      // 🏥 PHYSICAL CARE — SOUTH FORSYTH
+      {
+        name: "North Atlanta Primary Care Cumming",
+        specialty: "Primary Care",
+        category: "Physical",
+        region: "South Forsyth",
+        lat: 34.215806,
+        lng: -84.135928,
+        phone: "(770) 343-9112",
+        rating: 4.5,
+        reviews: 1300,
+        openHour: 8,
+        quote: "Knowledgeable and really seem to listen."
+      },
+      {
+        name: "South Forsyth Family Medicine and Pediatrics",
+        specialty: "Pediatrics",
+        category: "Physical",
+        region: "South Forsyth",
+        lat: 34.086994,
+        lng: -84.261222,
+        phone: "(770) 343-9112",
+        rating: 3.9,
+        reviews: 68,
+        openHour: 8,
+        quote: "Absolutely fantastic! Clean and well organized!"
+      },
+      {
+        name: "Northside Forsyth Internal Medicine & Geriatrics",
+        specialty: "Internal Medicine",
+        category: "Physical",
+        region: "South Forsyth",
+        lat: 34.221002,
+        lng: -84.134660,
+        phone: "(770) 844-0877",
+        rating: 4.6,
+        reviews: 21,
+        openHour: 7.5,
+        quote: "The doctors & staff are phenomenal."
+      },
+      {
+        name: "Northeast Georgia Physicians Group Cumming",
+        specialty: "Family Practice",
+        category: "Physical",
+        region: "South Forsyth",
+        lat: 34.270775,
+        lng: -84.080379,
+        phone: "(770) 848-9200",
+        rating: 3.3,
+        reviews: 22,
+        openHour: 7.75,
+        quote: "Listens and gets you in quickly."
       }
     ];
 
+    const categoryLabels = {
+      "Mental": "🧠 Mental Health",
+      "Physical": "🏥 Physical Care",
+      "Dental": "🦷 Dental",
+      "Eye": "👁 Eye Care"
+    };
+
     const specialtyColors = {
-      "Dental": "#3498db",
-      "Mental Health": "#e74c3c",
       "Mental Health Clinic": "#e74c3c",
       "Psychologist": "#e74c3c",
       "Psychiatrist": "#c0392b",
       "Counselor": "#e67e22",
-      "Eye Care": "#2ecc71",
-      "Primary Care": "#f39c12"
+      "Primary Care": "#3498db",
+      "Pediatrics": "#1abc9c",
+      "Internal Medicine": "#f1c40f",
+      "Family Practice": "#9b59b6",
+      "Dental": "#2980b9",
+      "Eye Care": "#2ecc71"
     };
 
     const map = L.map('map').setView([34.2073, -84.1402], 10);
@@ -166,39 +241,46 @@
         return;
       }
 
-      resultsDiv.innerHTML = `<h3>Doctors in ${region}</h3>`;
+      const byCategory = {};
+
       filtered.forEach(doc => {
-        const isOpen = currentHour >= doc.openHour;
-        const openText = isOpen ? `<span class='open-now'>Open</span>` : `<span class='closed'>Closed</span>`;
-
-        resultsDiv.innerHTML += `
-          <div class="doctor-card">
-            <strong>
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${doc.lat},${doc.lng}" target="_blank">
-                ${doc.name}
-              </a>
-            </strong><br>
-            ${doc.specialty} · <span>${doc.rating}⭐ (${doc.reviews})</span><br>
-            ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
-            <em>"${doc.quote}"</em>
-          </div>
-        `;
-
-        const marker = L.circleMarker([doc.lat, doc.lng], {
-          radius: 8,
-          fillColor: specialtyColors[doc.specialty] || "#999",
-          color: "#000",
-          weight: 1,
-          opacity: 1,
-          fillOpacity: 0.8
-        }).bindPopup(`<b>${doc.name}</b><br>${doc.specialty}`).addTo(map);
-
-        markers.push(marker);
+        if (!byCategory[doc.category]) byCategory[doc.category] = [];
+        byCategory[doc.category].push(doc);
       });
 
-      if (filtered.length > 0) {
-        map.setView([filtered[0].lat, filtered[0].lng], 12);
+      for (const category in byCategory) {
+        resultsDiv.innerHTML += `<div class="section-header">${categoryLabels[category]}</div>`;
+        byCategory[category].forEach(doc => {
+          const isOpen = currentHour >= doc.openHour;
+          const openText = isOpen ? `<span class='open-now'>Open</span>` : `<span class='closed'>Closed</span>`;
+
+          resultsDiv.innerHTML += `
+            <div class="doctor-card">
+              <strong>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${doc.lat},${doc.lng}" target="_blank">
+                  ${doc.name}
+                </a>
+              </strong><br>
+              ${doc.specialty} · <span>${doc.rating}⭐ (${doc.reviews})</span><br>
+              ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
+              <em>"${doc.quote}"</em>
+            </div>
+          `;
+
+          const marker = L.circleMarker([doc.lat, doc.lng], {
+            radius: 8,
+            fillColor: specialtyColors[doc.specialty] || "#999",
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+          }).bindPopup(`<b>${doc.name}</b><br>${doc.specialty}`).addTo(map);
+
+          markers.push(marker);
+        });
       }
+
+      map.setView([filtered[0].lat, filtered[0].lng], 12);
     }
 
     function formatTime(hourFloat) {
