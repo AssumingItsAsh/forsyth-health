@@ -13,7 +13,7 @@
       padding: 20px;
     }
 
-    input, button {
+    select, button {
       padding: 10px;
       font-size: 16px;
       margin-top: 10px;
@@ -21,32 +21,11 @@
       border-radius: 5px;
     }
 
-    #autocompleteResults {
-      background: white;
-      color: black;
-      position: absolute;
-      max-height: 150px;
-      overflow-y: auto;
-      width: 300px;
-      border-radius: 5px;
-      z-index: 999;
-    }
-
-    #autocompleteResults div {
-      padding: 5px;
-      cursor: pointer;
-    }
-
-    #autocompleteResults div:hover {
-      background-color: #eee;
-    }
-
-    #statusMessage {
-      font-weight: bold;
-      margin-top: 10px;
-      padding: 8px;
-      border-radius: 5px;
-      width: fit-content;
+    #results {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.05);
     }
 
     #map {
@@ -63,20 +42,25 @@
 <body>
   <h1>Find Doctors in Forsyth County</h1>
 
-  <input id="addressInput" type="text" placeholder="Start typing your street or area..." style="width: 300px;" autocomplete="off" />
-  <div id="autocompleteResults"></div>
-  <button id="findButton" onclick="handleAddress()">Find My Region</button>
-  <div id="statusMessage"></div>
+  <label for="regionSelect">Choose your region:</label>
+  <select id="regionSelect" onchange="filterByRegion()">
+    <option value="">-- Select a Region --</option>
+    <option value="Cumming">Cumming</option>
+    <option value="South Forsyth">South Forsyth</option>
+    <option value="North Forsyth">North Forsyth</option>
+    <option value="Alpharetta">Alpharetta</option>
+  </select>
 
+  <div id="results"></div>
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     const doctors = [
-      { name: "Dr. Emily Johnson", specialty: "Dental", lat: 34.2073, lng: -84.1402 },
-      { name: "Dr. Laura Smith", specialty: "Mental Health", lat: 34.1500, lng: -84.1700 },
-      { name: "Dr. Karen Taylor", specialty: "Eye Care", lat: 34.2200, lng: -84.1300 },
-      { name: "Dr. Linda Jackson", specialty: "Primary Care", lat: 34.1800, lng: -84.1600 }
+      { name: "Dr. Emily Johnson", specialty: "Dental", region: "Cumming", lat: 34.2073, lng: -84.1402 },
+      { name: "Dr. Laura Smith", specialty: "Mental Health", region: "South Forsyth", lat: 34.1500, lng: -84.1700 },
+      { name: "Dr. Karen Taylor", specialty: "Eye Care", region: "North Forsyth", lat: 34.2700, lng: -84.1000 },
+      { name: "Dr. Linda Jackson", specialty: "Primary Care", region: "Alpharetta", lat: 34.0800, lng: -84.2800 }
     ];
 
     const specialtyColors = {
@@ -86,95 +70,47 @@
       "Primary Care": "#f39c12"
     };
 
-    let selectedLat = null;
-    let selectedLng = null;
-
-    const map = L.map('map').setView([34.2073, -84.1402], 11);
+    const map = L.map('map').setView([34.2073, -84.1402], 10);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    doctors.forEach(doc => {
-      L.circleMarker([doc.lat, doc.lng], {
-        radius: 8,
-        fillColor: specialtyColors[doc.specialty],
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-      }).bindPopup(`<b>${doc.name}</b><br>${doc.specialty}`).addTo(map);
-    });
+    const markers = [];
 
-    document.getElementById("addressInput").addEventListener("input", async function () {
-      const query = this.value;
-      if (query.length < 2) return;
-
-      const bbox = "-84.35,34.00,-83.95,34.35";
-      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=${bbox}`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      const resultsDiv = document.getElementById("autocompleteResults");
+    function filterByRegion() {
+      const region = document.getElementById("regionSelect").value;
+      const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
 
-      const seen = new Set();
+      // Clear existing markers
+      markers.forEach(marker => map.removeLayer(marker));
+      markers.length = 0;
 
-      data.features.forEach(feature => {
-        const lat = feature.geometry.coordinates[1];
-        const lng = feature.geometry.coordinates[0];
-        const name = feature.properties.name || "";
-        const city = feature.properties.city || "";
-        const state = feature.properties.state || "";
-        const label = [name, city, state].filter(p => p.trim()).join(", ");
+      if (!region) return;
 
-        if (seen.has(label)) return;
-        seen.add(label);
+      const filtered = doctors.filter(doc => doc.region === region);
 
-        const option = document.createElement("div");
-        option.textContent = label;
-        option.onclick = () => {
-          document.getElementById("addressInput").value = label;
-          resultsDiv.innerHTML = "";
-          selectedLat = lat;
-          selectedLng = lng;
-        };
-
-        resultsDiv.appendChild(option);
-      });
-    });
-
-    function handleAddress() {
-      const button = document.getElementById("findButton");
-      const status = document.getElementById("statusMessage");
-
-      if (selectedLat === null || selectedLng === null) {
-        status.innerText = "Please select an address from the dropdown.";
-        status.style.backgroundColor = "orange";
-        status.style.color = "black";
+      if (filtered.length === 0) {
+        resultsDiv.innerHTML = "<p>No doctors found for this region.</p>";
         return;
       }
 
-      const region = getRegionFromCoords(selectedLat, selectedLng);
+      resultsDiv.innerHTML = `<h3>Doctors in ${region}</h3>`;
+      filtered.forEach(doc => {
+        resultsDiv.innerHTML += `<p><strong>${doc.name}</strong><br>${doc.specialty}</p>`;
 
-      if (region) {
-        status.innerText = "Region Found :)";
-        status.style.backgroundColor = "green";
-        status.style.color = "white";
-      } else {
-        status.innerText = "Region Not Found";
-        status.style.backgroundColor = "red";
-        status.style.color = "white";
-      }
-    }
+        const marker = L.circleMarker([doc.lat, doc.lng], {
+          radius: 8,
+          fillColor: specialtyColors[doc.specialty],
+          color: "#000",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).bindPopup(`<b>${doc.name}</b><br>${doc.specialty}`).addTo(map);
 
-    function getRegionFromCoords(lat, lng) {
-      if (lat > 34.25 && lng < -84.05) return "North Forsyth";
-      if (lat < 34.18 && lng > -84.2 && lng < -84.08) return "South Forsyth";
-      if (lat > 34.1 && lat < 34.25 && lng > -84.2 && lng < -84.08) return "Cumming";
-      if (lat < 34.1 && lng < -84.23) return "Alpharetta";
-      return null;
+        markers.push(marker);
+      });
     }
   </script>
 </body>
