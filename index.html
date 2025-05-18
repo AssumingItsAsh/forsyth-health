@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Find Doctors in Forsyth County</title>
+  <title>Forsyth County Doctors</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
@@ -13,11 +13,10 @@
       padding: 20px;
     }
 
-    select, button {
+    select {
       padding: 10px;
       font-size: 16px;
       margin-top: 10px;
-      margin-bottom: 10px;
       border-radius: 5px;
     }
 
@@ -55,10 +54,6 @@
       margin-top: 20px;
     }
 
-    .leaflet-container {
-      background: transparent !important;
-    }
-
     a {
       color: #4da6ff;
       text-decoration: none;
@@ -75,10 +70,8 @@
   <label for="regionSelect">Choose your region:</label>
   <select id="regionSelect" onchange="filterByRegion()">
     <option value="">-- Select a Region --</option>
-    <option value="Cumming">Cumming</option>
     <option value="South Forsyth">South Forsyth</option>
     <option value="North Forsyth">North Forsyth</option>
-    <option value="Alpharetta">Alpharetta</option>
   </select>
 
   <div id="results"></div>
@@ -86,29 +79,34 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
+    const map = L.map('map').setView([34.2, -84.15], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const regionPolygons = {
+      "South Forsyth": [
+        [34.1000, -84.2700],
+        [34.1000, -84.0500],
+        [34.1800, -84.0500],
+        [34.1800, -84.2700]
+      ],
+      "North Forsyth": [
+        [34.2500, -84.2700],
+        [34.2500, -84.0500],
+        [34.3300, -84.0500],
+        [34.3300, -84.2700]
+      ]
+    };
+
+    let currentPolygon = null;
+
     const doctors = [
-      // 🧠 MENTAL HEALTH — SOUTH FORSYTH
-      {
-        name: "Susan Player, Psychiatric NP",
-        specialty: "Psychiatrist",
-        category: "Mental",
-        region: "South Forsyth",
-        lat: 34.1524,
-        lng: -84.1726,
-        phone: "(770) 886-5700",
-        rating: 4.8,
-        reviews: 52,
-        openHour: 7.5,
-        quote: "Helps me stay on a stable life track.",
-        mapsQuery: "Susan+Player+Psychiatric+NP+South+Forsyth"
-      },
       {
         name: "Thriveworks Counseling & Psychiatry",
         specialty: "Counselor",
         category: "Mental",
         region: "South Forsyth",
-        lat: 34.1522,
-        lng: -84.1687,
         phone: "(770) 824-3025",
         rating: 4.7,
         reviews: 62,
@@ -117,84 +115,22 @@
         mapsQuery: "Thriveworks+Counseling+Cumming+GA"
       },
       {
-        name: "Pavilion Psychological Services",
-        specialty: "Mental Health Clinic",
-        category: "Mental",
-        region: "South Forsyth",
-        lat: 34.1545,
-        lng: -84.1323,
-        phone: "(470) 239-8448",
-        rating: 4.5,
-        reviews: 8,
-        openHour: 9,
-        quote: "Exceptional help with school-related issues.",
-        mapsQuery: "Pavilion+Psychological+Services+Cumming+GA"
-      },
-      {
-        name: "LifeStance Therapists & Psychiatrists",
-        specialty: "Psychologist",
-        category: "Mental",
-        region: "South Forsyth",
-        lat: 34.1523,
-        lng: -84.1726,
-        phone: "(770) 886-5700",
-        rating: 4.6,
-        reviews: 496,
-        openHour: 7.5,
-        quote: "Listens to you and helps on a deeper level.",
-        mapsQuery: "LifeStance+Therapists+Psychiatrists+Cumming+GA"
-      },
-
-      // 🏥 PHYSICAL CARE — SOUTH FORSYTH
-      {
         name: "North Atlanta Primary Care Cumming",
         specialty: "Primary Care",
         category: "Physical",
         region: "South Forsyth",
-        lat: 34.2158,
-        lng: -84.1359,
         phone: "(770) 343-9112",
         rating: 4.5,
         reviews: 1300,
         openHour: 8,
         quote: "Doctors are knowledgeable and really listen.",
-        mapsQuery: "North+Atlanta+Primary+Care+Cumming+GA"
-      },
-      {
-        name: "South Forsyth Family Medicine and Pediatrics",
-        specialty: "Pediatrics",
-        category: "Physical",
-        region: "South Forsyth",
-        lat: 34.0869,
-        lng: -84.2612,
-        phone: "(770) 343-9112",
-        rating: 3.9,
-        reviews: 68,
-        openHour: 8,
-        quote: "Absolutely fantastic! Clean and well organized.",
-        mapsQuery: "South+Forsyth+Family+Medicine+Pediatrics+Alpharetta"
-      },
-      {
-        name: "Northside Forsyth Internal Medicine & Geriatrics",
-        specialty: "Internal Medicine",
-        category: "Physical",
-        region: "South Forsyth",
-        lat: 34.2210,
-        lng: -84.1347,
-        phone: "(770) 844-0877",
-        rating: 4.6,
-        reviews: 21,
-        openHour: 7.5,
-        quote: "Doctors & staff are phenomenal.",
-        mapsQuery: "Northside+Forsyth+Internal+Medicine+Geriatrics+Cumming"
+        mapsQuery: "North+Atlanta+Primary+Care+1800+Northside+Forsyth+Dr+Cumming+GA"
       },
       {
         name: "Northeast Georgia Physicians Group Cumming",
         specialty: "Family Practice",
         category: "Physical",
-        region: "South Forsyth",
-        lat: 34.2708,
-        lng: -84.0803,
+        region: "North Forsyth",
         phone: "(770) 848-9200",
         rating: 3.3,
         reviews: 22,
@@ -206,48 +142,30 @@
 
     const categoryLabels = {
       "Mental": "🧠 Mental Health",
-      "Physical": "🏥 Physical Care",
-      "Dental": "🦷 Dental",
-      "Eye": "👁 Eye Care"
+      "Physical": "🏥 Physical Care"
     };
-
-    const specialtyColors = {
-      "Mental Health Clinic": "#e74c3c",
-      "Psychologist": "#e74c3c",
-      "Psychiatrist": "#c0392b",
-      "Counselor": "#e67e22",
-      "Primary Care": "#3498db",
-      "Pediatrics": "#1abc9c",
-      "Internal Medicine": "#f1c40f",
-      "Family Practice": "#9b59b6",
-      "Dental": "#2980b9",
-      "Eye Care": "#2ecc71"
-    };
-
-    const map = L.map('map').setView([34.2073, -84.1402], 10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const markers = [];
 
     function filterByRegion() {
       const region = document.getElementById("regionSelect").value;
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
 
-      markers.forEach(marker => map.removeLayer(marker));
-      markers.length = 0;
+      if (currentPolygon) {
+        map.removeLayer(currentPolygon);
+        currentPolygon = null;
+      }
 
-      if (!region) return;
+      if (region && regionPolygons[region]) {
+        currentPolygon = L.polygon(regionPolygons[region], {
+          color: "#00ff88",
+          fillColor: "#00ff8855",
+          fillOpacity: 0.3
+        }).addTo(map);
+        map.fitBounds(currentPolygon.getBounds());
+      }
 
       const filtered = doctors.filter(doc => doc.region === region);
       const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
-
-      if (filtered.length === 0) {
-        resultsDiv.innerHTML = "<p>No doctors found for this region.</p>";
-        return;
-      }
 
       const byCategory = {};
       filtered.forEach(doc => {
@@ -264,31 +182,14 @@
 
           resultsDiv.innerHTML += `
             <div class="doctor-card">
-              <strong>
-                <a href="${mapsLink}" target="_blank">
-                  ${doc.name}
-                </a>
-              </strong><br>
-              ${doc.specialty} · <span>${doc.rating}⭐ (${doc.reviews})</span><br>
+              <strong><a href="${mapsLink}" target="_blank">${doc.name}</a></strong><br>
+              ${doc.specialty} · ${doc.rating}⭐ (${doc.reviews})<br>
               ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
               <em>"${doc.quote}"</em>
             </div>
           `;
-
-          const marker = L.circleMarker([doc.lat, doc.lng], {
-            radius: 8,
-            fillColor: specialtyColors[doc.specialty] || "#999",
-            color: "#000",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          }).bindPopup(`<b>${doc.name}</b><br>${doc.specialty}`).addTo(map);
-
-          markers.push(marker);
         });
       }
-
-      map.setView([filtered[0].lat, filtered[0].lng], 12);
     }
 
     function formatTime(hourFloat) {
