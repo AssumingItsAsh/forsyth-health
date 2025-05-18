@@ -12,7 +12,7 @@
       padding: 20px;
     }
 
-    input, select, button {
+    input, button {
       padding: 10px;
       font-size: 16px;
       margin-top: 10px;
@@ -51,6 +51,9 @@
     #statusMessage {
       font-weight: bold;
       margin-top: 10px;
+      padding: 8px;
+      border-radius: 5px;
+      width: fit-content;
     }
   </style>
 </head>
@@ -61,16 +64,6 @@
   <div id="autocompleteResults"></div>
   <button id="findButton" onclick="handleAddress()">Find My Region</button>
   <div id="statusMessage"></div>
-
-  <br><br>
-  <label for="regionSelect">Or choose your region:</label>
-  <select id="regionSelect" onchange="filterByRegion()">
-    <option value="">-- Select a Region --</option>
-    <option value="Cumming">Cumming</option>
-    <option value="South Forsyth">South Forsyth</option>
-    <option value="North Forsyth">North Forsyth</option>
-    <option value="Alpharetta">Alpharetta</option>
-  </select>
 
   <div id="results"></div>
 
@@ -131,23 +124,23 @@
 
       if (selectedLat === null || selectedLng === null) {
         status.innerText = "Please select an address from the dropdown.";
-        status.style.color = "orange";
-        button.style.background = "";
+        status.style.backgroundColor = "orange";
+        status.style.color = "black";
         return;
       }
 
       const region = getRegionFromCoords(selectedLat, selectedLng);
 
       if (region) {
-        document.getElementById("regionSelect").value = region;
-        filterByRegion();
-        status.innerText = "✅ Region Found! :)";
-        status.style.color = "lightgreen";
-        button.style.background = "green";
+        filterByRegion(region);
+        status.innerText = "Region Found :)";
+        status.style.backgroundColor = "green";
+        status.style.color = "white";
       } else {
-        status.innerText = "❌ Region Not Found";
-        status.style.color = "red";
-        button.style.background = "red";
+        document.getElementById("results").innerHTML = "";
+        status.innerText = "Region Not Found";
+        status.style.backgroundColor = "red";
+        status.style.color = "white";
       }
     }
 
@@ -159,9 +152,8 @@
       return null;
     }
 
-    function filterByRegion() {
-      const selectedRegion = document.getElementById("regionSelect").value;
-      const filteredDoctors = doctors.filter(doc => doc.region === selectedRegion);
+    function filterByRegion(regionName) {
+      const filteredDoctors = doctors.filter(doc => doc.region === regionName);
 
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
@@ -171,7 +163,7 @@
         return;
       }
 
-      resultsDiv.innerHTML = `<h3>Doctors in ${selectedRegion}</h3>`;
+      resultsDiv.innerHTML = `<h3>Doctors in ${regionName}</h3>`;
       filteredDoctors.forEach(doc => {
         resultsDiv.innerHTML += `<p><strong>${doc.name}</strong><br>${doc.address}</p>`;
       });
