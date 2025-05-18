@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Find Doctors in Forsyth County</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,29 +17,35 @@
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 26px;
     }
 
     select {
       padding: 10px;
-      margin-top: 10px;
       font-size: 16px;
       border-radius: 5px;
+      margin-top: 10px;
     }
 
     #results {
       margin-top: 20px;
-      background-color: white;
+      background: white;
       color: black;
       padding: 15px;
-      border-radius: 8px;
+      border-radius: 10px;
+    }
+
+    #map {
+      height: 400px;
+      margin-top: 20px;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
   <h1>Find Doctors in Forsyth County</h1>
 
-  <label for="regionSelect">Choose your area:</label>
+  <label for="regionSelect">Choose your region:</label>
   <select id="regionSelect" onchange="filterByRegion()">
     <option value="">-- Select a Region --</option>
     <option value="Cumming">Cumming</option>
@@ -44,30 +55,50 @@
   </select>
 
   <div id="results"></div>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     const doctors = [
       {
         name: "Dr. Smith - Northside Forsyth",
         address: "123 Main St, Cumming, GA",
-        region: "Cumming"
+        region: "Cumming",
+        lat: 34.2070,
+        lng: -84.1403
       },
       {
         name: "Dr. Patel - Forsyth Family Health",
         address: "456 Oak Dr, South Forsyth, GA",
-        region: "South Forsyth"
+        region: "South Forsyth",
+        lat: 34.1808,
+        lng: -84.1522
       },
       {
         name: "Dr. Nguyen - Cumming Internal Medicine",
         address: "789 Pine Ave, North Forsyth, GA",
-        region: "North Forsyth"
+        region: "North Forsyth",
+        lat: 34.2701,
+        lng: -84.1100
       },
       {
         name: "Dr. Ali - Alpharetta Primary Care",
         address: "22 Peachtree Rd, Alpharetta, GA",
-        region: "Alpharetta"
+        region: "Alpharetta",
+        lat: 34.0700,
+        lng: -84.2700
       }
     ];
+
+    // Initialize map
+    const map = L.map('map').setView([34.2068, -84.1403], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let markers = [];
 
     function filterByRegion() {
       const selectedRegion = document.getElementById("regionSelect").value;
@@ -87,6 +118,21 @@
           <p><strong>${doc.name}</strong><br>${doc.address}</p>
         `;
       });
+
+      // Remove old markers
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+
+      // Add new markers
+      filteredDoctors.forEach(doc => {
+        const marker = L.marker([doc.lat, doc.lng]).addTo(map)
+          .bindPopup(`<strong>${doc.name}</strong><br>${doc.address}`);
+        markers.push(marker);
+      });
+
+      if (filteredDoctors.length > 0) {
+        map.setView([filteredDoctors[0].lat, filteredDoctors[0].lng], 12);
+      }
     }
   </script>
 </body>
