@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Find Doctors in Forsyth County</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #4B0082, #8A2BE2);
+      color: white;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    select {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    #results {
+      margin-top: 20px;
+      background-color: white;
+      color: black;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Find Doctors in Forsyth County</h1>
+
+  <label for="regionSelect">Choose your area:</label>
+  <select id="regionSelect" onchange="filterByRegion()">
+    <option value="">-- Select a Region --</option>
+    <option value="Cumming">Cumming</option>
+    <option value="South Forsyth">South Forsyth</option>
+    <option value="North Forsyth">North Forsyth</option>
+    <option value="Alpharetta">Alpharetta</option>
+  </select>
+
+  <div id="results"></div>
+
+  <script>
+    const doctors = [
+      {
+        name: "Dr. Smith - Northside Forsyth",
+        address: "123 Main St, Cumming, GA",
+        region: "Cumming"
+      },
+      {
+        name: "Dr. Patel - Forsyth Family Health",
+        address: "456 Oak Dr, South Forsyth, GA",
+        region: "South Forsyth"
+      },
+      {
+        name: "Dr. Nguyen - Cumming Internal Medicine",
+        address: "789 Pine Ave, North Forsyth, GA",
+        region: "North Forsyth"
+      },
+      {
+        name: "Dr. Ali - Alpharetta Primary Care",
+        address: "22 Peachtree Rd, Alpharetta, GA",
+        region: "Alpharetta"
+      }
+    ];
+
+    function filterByRegion() {
+      const selectedRegion = document.getElementById("regionSelect").value;
+      const filteredDoctors = doctors.filter(doc => doc.region === selectedRegion);
+
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+
+      if (filteredDoctors.length === 0) {
+        resultsDiv.innerHTML = "<p>No doctors found for this region.</p>";
+        return;
+      }
+
+      resultsDiv.innerHTML = `<h3>Doctors in ${selectedRegion}</h3>`;
+      filteredDoctors.forEach(doc => {
+        resultsDiv.innerHTML += `
+          <p><strong>${doc.name}</strong><br>${doc.address}</p>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
