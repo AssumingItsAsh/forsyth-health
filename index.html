@@ -80,55 +80,55 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     const doctors = [
-  {
-    name: "Susan Player, Psychiatric NP",
-    specialty: "Psychiatrist",
-    region: "South Forsyth",
-    lat: 34.152374,
-    lng: -84.172605,
-    phone: "(770) 886-5700",
-    rating: 4.8,
-    reviews: 52,
-    openHour: 7.5,
-    quote: "She helps me keep on a stable life track with my bipolar disorder."
-  },
-  {
-    name: "Thriveworks Counseling & Psychiatry",
-    specialty: "Counselor",
-    region: "South Forsyth",
-    lat: 34.152171,
-    lng: -84.168742,
-    phone: "(770) 824-3025",
-    rating: 4.7,
-    reviews: 62,
-    openHour: 8,
-    quote: "Knowledgeable and experienced professionals."
-  },
-  {
-    name: "Pavilion Psychological Services",
-    specialty: "Mental Health Clinic",
-    region: "South Forsyth",
-    lat: 34.154487,
-    lng: -84.132336,
-    phone: "(470) 239-8448",
-    rating: 4.5,
-    reviews: 8,
-    openHour: 9,
-    quote: "Dr. Baker was exceptional in helping my son with troubles at school."
-  },
-  {
-    name: "LifeStance Therapists & Psychiatrists",
-    specialty: "Psychologist",
-    region: "South Forsyth",
-    lat: 34.152374,
-    lng: -84.172605,
-    phone: "(770) 886-5700",
-    rating: 4.6,
-    reviews: 496,
-    openHour: 7.5,
-    quote: "She listens to you and helps you at a deeper level."
-  }
-];
+      {
+        name: "Susan Player, Psychiatric NP",
+        specialty: "Psychiatrist",
+        region: "South Forsyth",
+        lat: 34.152374,
+        lng: -84.172605,
+        phone: "(770) 886-5700",
+        rating: 4.8,
+        reviews: 52,
+        openHour: 7.5,
+        quote: "She helps me keep on a stable life track with my bipolar disorder."
+      },
+      {
+        name: "Thriveworks Counseling & Psychiatry",
+        specialty: "Counselor",
+        region: "South Forsyth",
+        lat: 34.152171,
+        lng: -84.168742,
+        phone: "(770) 824-3025",
+        rating: 4.7,
+        reviews: 62,
+        openHour: 8,
+        quote: "Knowledgeable and experienced professionals."
+      },
+      {
+        name: "Pavilion Psychological Services",
+        specialty: "Mental Health Clinic",
+        region: "South Forsyth",
+        lat: 34.154487,
+        lng: -84.132336,
+        phone: "(470) 239-8448",
+        rating: 4.5,
+        reviews: 8,
+        openHour: 9,
+        quote: "Dr. Baker was exceptional in helping my son with troubles at school."
+      },
+      {
+        name: "LifeStance Therapists & Psychiatrists",
+        specialty: "Psychologist",
+        region: "South Forsyth",
+        lat: 34.152374,
+        lng: -84.172605,
+        phone: "(770) 886-5700",
+        rating: 4.6,
+        reviews: 496,
+        openHour: 7.5,
+        quote: "She listens to you and helps you at a deeper level."
+      }
+    ];
 
     const specialtyColors = {
       "Dental": "#3498db",
@@ -159,13 +159,12 @@
       if (!region) return;
 
       const filtered = doctors.filter(doc => doc.region === region);
+      const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
 
       if (filtered.length === 0) {
         resultsDiv.innerHTML = "<p>No doctors found for this region.</p>";
         return;
       }
-
-      const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
 
       resultsDiv.innerHTML = `<h3>Doctors in ${region}</h3>`;
       filtered.forEach(doc => {
@@ -174,7 +173,11 @@
 
         resultsDiv.innerHTML += `
           <div class="doctor-card">
-            <strong><a href="#" onclick="zoomToLocation(${doc.lat}, ${doc.lng}); return false;">${doc.name}</a></strong><br>
+            <strong>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${doc.lat},${doc.lng}" target="_blank">
+                ${doc.name}
+              </a>
+            </strong><br>
             ${doc.specialty} · <span>${doc.rating}⭐ (${doc.reviews})</span><br>
             ${doc.phone} · ${openText} · Opens ${formatTime(doc.openHour)}<br>
             <em>"${doc.quote}"</em>
@@ -196,10 +199,6 @@
       if (filtered.length > 0) {
         map.setView([filtered[0].lat, filtered[0].lng], 12);
       }
-    }
-
-    function zoomToLocation(lat, lng) {
-      map.setView([lat, lng], 15, { animate: true });
     }
 
     function formatTime(hourFloat) {
