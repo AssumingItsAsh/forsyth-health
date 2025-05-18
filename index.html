@@ -47,6 +47,11 @@
       padding: 15px;
       border-radius: 10px;
     }
+
+    #statusMessage {
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -54,7 +59,8 @@
 
   <input id="addressInput" type="text" placeholder="Start typing your street or area..." style="width: 300px;" autocomplete="off" />
   <div id="autocompleteResults"></div>
-  <button onclick="handleAddress()">Find My Region</button>
+  <button id="findButton" onclick="handleAddress()">Find My Region</button>
+  <div id="statusMessage"></div>
 
   <br><br>
   <label for="regionSelect">Or choose your region:</label>
@@ -83,8 +89,7 @@
       const query = this.value;
       if (query.length < 2) return;
 
-      // This bbox is ONLY Forsyth County GA area
-      const bbox = "-84.35,34.00,-83.95,34.35"; // west, south, east, north
+      const bbox = "-84.35,34.00,-83.95,34.35";
       const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=${bbox}`;
 
       const res = await fetch(url);
@@ -93,10 +98,19 @@
       const resultsDiv = document.getElementById("autocompleteResults");
       resultsDiv.innerHTML = "";
 
+      const seen = new Set();
+
       data.features.forEach(feature => {
         const lat = feature.geometry.coordinates[1];
         const lng = feature.geometry.coordinates[0];
-        const label = feature.properties.name + ", " + (feature.properties.city || "") + ", " + (feature.properties.state || "");
+
+        const name = feature.properties.name || "";
+        const city = feature.properties.city || "";
+        const state = feature.properties.state || "";
+        const label = [name, city, state].filter(p => p.trim()).join(", ");
+
+        if (seen.has(label)) return;
+        seen.add(label);
 
         const option = document.createElement("div");
         option.textContent = label;
@@ -112,17 +126,28 @@
     });
 
     function handleAddress() {
+      const button = document.getElementById("findButton");
+      const status = document.getElementById("statusMessage");
+
       if (selectedLat === null || selectedLng === null) {
-        alert("Please select an address from the dropdown.");
+        status.innerText = "Please select an address from the dropdown.";
+        status.style.color = "orange";
+        button.style.background = "";
         return;
       }
 
       const region = getRegionFromCoords(selectedLat, selectedLng);
+
       if (region) {
         document.getElementById("regionSelect").value = region;
         filterByRegion();
+        status.innerText = "✅ Region Found! :)";
+        status.style.color = "lightgreen";
+        button.style.background = "green";
       } else {
-        alert("Sorry, you're outside our supported regions.");
+        status.innerText = "❌ Region Not Found";
+        status.style.color = "red";
+        button.style.background = "red";
       }
     }
 
