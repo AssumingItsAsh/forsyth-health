@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <title>Find Doctors in Forsyth County</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -20,11 +16,12 @@
       font-size: 26px;
     }
 
-    select {
+    select, input, button {
       padding: 10px;
       font-size: 16px;
-      border-radius: 5px;
       margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
     }
 
     #results {
@@ -35,17 +32,31 @@
       border-radius: 10px;
     }
 
-    #map {
-      height: 400px;
-      margin-top: 20px;
-      border-radius: 10px;
+    #autocompleteResults {
+      position: absolute;
+      background: white;
+      color: black;
+      max-height: 150px;
+      overflow-y: auto;
+      width: 300px;
+      border-radius: 4px;
+      z-index: 999;
+    }
+
+    #autocompleteResults div:hover {
+      background-color: #eee;
     }
   </style>
 </head>
 <body>
   <h1>Find Doctors in Forsyth County</h1>
 
-  <label for="regionSelect">Choose your region:</label>
+  <input id="addressInput" type="text" placeholder="Enter your address" style="width: 300px;" />
+  <div id="autocompleteResults"></div>
+  <button onclick="handleAddress()">Find My Region</button>
+
+  <br><br>
+  <label for="regionSelect">Or choose your region:</label>
   <select id="regionSelect" onchange="filterByRegion()">
     <option value="">-- Select a Region --</option>
     <option value="Cumming">Cumming</option>
@@ -55,50 +66,68 @@
   </select>
 
   <div id="results"></div>
-  <div id="map"></div>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     const doctors = [
-      {
-        name: "Dr. Smith - Northside Forsyth",
-        address: "123 Main St, Cumming, GA",
-        region: "Cumming",
-        lat: 34.2070,
-        lng: -84.1403
-      },
-      {
-        name: "Dr. Patel - Forsyth Family Health",
-        address: "456 Oak Dr, South Forsyth, GA",
-        region: "South Forsyth",
-        lat: 34.1808,
-        lng: -84.1522
-      },
-      {
-        name: "Dr. Nguyen - Cumming Internal Medicine",
-        address: "789 Pine Ave, North Forsyth, GA",
-        region: "North Forsyth",
-        lat: 34.2701,
-        lng: -84.1100
-      },
-      {
-        name: "Dr. Ali - Alpharetta Primary Care",
-        address: "22 Peachtree Rd, Alpharetta, GA",
-        region: "Alpharetta",
-        lat: 34.0700,
-        lng: -84.2700
-      }
+      { name: "Dr. Smith", address: "123 Main St", region: "Cumming" },
+      { name: "Dr. Patel", address: "456 Oak Dr", region: "South Forsyth" },
+      { name: "Dr. Nguyen", address: "789 Pine Ave", region: "North Forsyth" },
+      { name: "Dr. Ali", address: "22 Peachtree Rd", region: "Alpharetta" }
     ];
 
-    // Initialize map
-    const map = L.map('map').setView([34.2068, -84.1403], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    // Autocomplete (Photon API)
+    document.getElementById("addressInput").addEventListener("input", async function () {
+      const query = this.value;
+      if (query.length < 3) return;
 
-    let markers = [];
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
+      const data = await res.json();
+      const resultsDiv = document.getElementById("autocompleteResults");
+      resultsDiv.innerHTML = "";
+
+      data.features.forEach(feature => {
+        const option = document.createElement("div");
+        option.textContent = feature.properties.name + ", " + (feature.properties.city || "") + ", " + (feature.properties.state || "");
+        option.style.padding = "5px";
+        option.style.cursor = "pointer";
+
+        option.onclick = () => {
+          document.getElementById("addressInput").value = option.textContent;
+          resultsDiv.innerHTML = "";
+          document.getElementById("addressInput").setAttribute("data-lat", feature.geometry.coordinates[1]);
+          document.getElementById("addressInput").setAttribute("data-lng", feature.geometry.coordinates[0]);
+        };
+
+        resultsDiv.appendChild(option);
+      });
+    });
+
+    function handleAddress() {
+      const lat = parseFloat(document.getElementById("addressInput").getAttribute("data-lat"));
+      const lng = parseFloat(document.getElementById("addressInput").getAttribute("data-lng"));
+
+      if (isNaN(lat) || isNaN(lng)) {
+        alert("Please select a full address from the dropdown.");
+        return;
+      }
+
+      const region = getRegionFromCoords(lat, lng);
+
+      if (region) {
+        document.getElementById("regionSelect").value = region;
+        filterByRegion();
+      } else {
+        alert("Sorry, you're outside our supported regions.");
+      }
+    }
+
+    function getRegionFromCoords(lat, lng) {
+      if (lat > 34.25 && lng < -84.05) return "North Forsyth";
+      if (lat < 34.18 && lng > -84.2 && lng < -84.08) return "South Forsyth";
+      if (lat > 34.1 && lat < 34.25 && lng > -84.2 && lng < -84.08) return "Cumming";
+      if (lat < 34.1 && lng < -84.23) return "Alpharetta";
+      return null;
+    }
 
     function filterByRegion() {
       const selectedRegion = document.getElementById("regionSelect").value;
@@ -118,21 +147,6 @@
           <p><strong>${doc.name}</strong><br>${doc.address}</p>
         `;
       });
-
-      // Remove old markers
-      markers.forEach(marker => map.removeLayer(marker));
-      markers = [];
-
-      // Add new markers
-      filteredDoctors.forEach(doc => {
-        const marker = L.marker([doc.lat, doc.lng]).addTo(map)
-          .bindPopup(`<strong>${doc.name}</strong><br>${doc.address}`);
-        markers.push(marker);
-      });
-
-      if (filteredDoctors.length > 0) {
-        map.setView([filteredDoctors[0].lat, filteredDoctors[0].lng], 12);
-      }
     }
   </script>
 </body>
